@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Informe de Proyecto - Gestión de Pacientes</title>
+  <!-- Fuentes de Google: Playball para títulos destacados y Plus Jakarta Sans para lectura cómoda -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playball&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <style>
+    /* Paleta solicitada: ["#006d77","#83c5be","#edf6f9","#ffddd2"] */
+    :root {
+      --primary: #006d77;
+      --secondary: #83c5be;
+      --bg-light: #edf6f9;
+      --accent: #ffddd2;
+      --text: #264653;
+      --text-muted: #52796f;
+      --white: #ffffff;
+      --border-color: #d8e2dc;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    /* Reglas para formato de página A4 con espacios de respiración */
+    @page {
+      size: A4 portrait;
+      margin: 22mm 18mm 24mm 18mm; /* Márgenes superior e inferior generosos */
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      color: var(--text);
+      background-color: #eef2f3;
+      line-height: 1.65;
+      font-size: 13.5px;
+      -webkit-print-color-adjust: exact !important;
+      print-color-adjust: exact !important;
+    }
+
+    /* Barra no imprimible */
+    .print-bar {
+      max-width: 210mm;
+      margin: 20px auto 10px auto;
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .btn-print {
+      background-color: var(--primary);
+      color: white;
+      border: none;
+      padding: 10px 22px;
+      border-radius: 6px;
+      font-weight: 600;
+      font-size: 13px;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 8px rgba(0, 109, 119, 0.25);
+      transition: background 0.2s ease;
+    }
+
+    .btn-print:hover {
+      background-color: #00565e;
+    }
+
+    /* Estructura de hoja A4 independiente */
+    .a4-page {
+      width: 210mm;
+      min-height: 297mm;
+      margin: 0 auto 30px auto;
+      background: var(--white);
+      padding: 24mm 22mm;
+      box-shadow: 0 4px 25px rgba(0, 0, 0, 0.07);
+      border-radius: 4px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+    }
+
+    .page-content {
+      flex: 1;
+    }
+
+    /* Ajustes específicos de impresión */
+    @media print {
+      body {
+        background: transparent;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .a4-page {
+        width: 100% !important;
+        min-height: auto !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        box-shadow: none !important;
+        border-radius: 0 !important;
+        page-break-after: always;
+      }
+      .a4-page:last-child {
+        page-break-after: avoid;
+      }
+    }
+
+    /* Encabezado */
+    .header-banner {
+      border-bottom: 2px solid var(--secondary);
+      padding-bottom: 18px;
+      margin-bottom: 25px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-end;
+    }
+
+    .main-title {
+      font-family: 'Playball', cursive;
+      font-size: 38px;
+      color: var(--primary);
+      line-height: 1.1;
+      margin-bottom: 4px;
+    }
+
+    .sub-title {
+      font-size: 14px;
+      color: var(--text-muted);
+      font-weight: 500;
+    }
+
+    .meta-box {
+      text-align: right;
+      font-size: 11.5px;
+      color: var(--text-muted);
+      line-height: 1.45;
+    }
+
+    .meta-box strong {
+      color: var(--primary);
+    }
+
+    /* Títulos con Playball */
+    h2 {
+      font-family: 'Playball', cursive;
+      color: var(--primary);
+      font-size: 26px;
+      margin-top: 22px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    h2::after {
+      content: "";
+      flex: 1;
+      height: 1.5px;
+      background: linear-gradient(to right, var(--secondary), transparent);
+    }
+
+    h3 {
+      font-size: 14.5px;
+      font-weight: 700;
+      color: var(--primary);
+      margin: 14px 0 6px 0;
+    }
+
+    p {
+      margin-bottom: 10px;
+      text-align: justify;
+      color: #333;
+    }
+
+    /* Tarjetas destacadas con respiración */
+    .highlight-card {
+      background-color: var(--bg-light);
+      border-left: 4px solid var(--primary);
+      border-radius: 4px;
+      padding: 12px 18px;
+      margin: 12px 0;
+    }
+
+    .note-pill {
+      background-color: var(--accent);
+      color: #723d2b;
+      padding: 3px 8px;
+      border-radius: 4px;
+      font-size: 10px;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      display: inline-block;
+      margin-bottom: 6px;
+    }
+
+    /* Tablas diseñadas para A4 */
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 12px 0 16px 0;
+      font-size: 12px;
+    }
+
+    th, td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid var(--border-color);
+    }
+
+    th {
+      background-color: var(--primary);
+      color: var(--white);
+      font-weight: 600;
+      text-transform: uppercase;
+      font-size: 10.5px;
+      letter-spacing: 0.5px;
+    }
+
+    tr:nth-child(even) {
+      background-color: #fafcfc;
+    }
+
+    /* Bloques de código */
+    .code-block {
+      background-color: #1e293b;
+      color: #f8fafc;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11.5px;
+      padding: 10px 14px;
+      border-radius: 5px;
+      margin: 8px 0;
+      line-height: 1.45;
+    }
+
+    /* Listas */
+    ul {
+      margin: 6px 0 12px 20px;
+    }
+
+    li {
+      margin-bottom: 4px;
+    }
+
+    /* Pie de página de cada hoja */
+    .page-footer {
+      border-top: 1px solid var(--border-color);
+      padding-top: 10px;
+      margin-top: 20px;
+      display: flex;
+      justify-content: space-between;
+      font-size: 11px;
+      color: var(--text-muted);
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Botón de impresión (no sale en la hoja) -->
+  <div class="print-bar no-print">
+    <button class="btn-print" onclick="window.print()">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/>
+        <path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/>
+      </svg>
+      Imprimir en A4 / Guardar PDF
+    </button>
+  </div>
+
+  <!-- PÁGINA 1: Introducción y Datos -->
+  <div class="a4-page">
+    <div class="page-content">
+      
+      <header class="header-banner">
+        <div>
+          <h1 class="main-title">Sistema de Gestión de Pacientes</h1>
+          <p class="sub-title">Proyecto de 2do Año – Sistemas Operativos (2025/2026)</p>
+        </div>
+        <div class="meta-box">
+          <p><strong>Institución:</strong> B.T. Informática</p>
+          <p><strong>Docente:</strong> Prof. Sandro Amaral</p>
+          <p><strong>Integrantes:</strong> Adrián Fros, Javier Miranda</p>
+        </div>
+      </header>
+
+      <section>
+        <h2>Introducción y Propósito</h2>
+        <p>
+          El presente trabajo consiste en el desarrollo de un script en Bash orientado a la administración de socios de una mutualista médica. El objetivo central es ofrecer una herramienta en consola que resuelva de manera ágil y segura las tareas de altas, bajas, modificaciones y consultas sobre archivos de texto plano.
+        </p>
+        <p>
+          Se diseñó una interfaz interactiva y fácil de usar, prestando especial atención a las validaciones de datos (cédulas válidas, cuotas numéricas y médicos existentes) y asegurando la integridad del padrón mediante respaldos automáticos antes de cada cambio en los archivos.
+        </p>
+      </section>
+
+      <section>
+        <h2>Estructura de la Base de Datos</h2>
+        <p>
+          La información reside en la carpeta <code>db/</code> en formato de texto plano con campos delimitados por dos puntos (<code>:</code>).
+        </p>
+
+        <div class="highlight-card">
+          <span class="note-pill">Estructura de los Archivos</span>
+          <p style="margin-bottom: 4px;"><strong>Padrón de Pacientes (<code>db/pacientes.txt</code>):</strong></p>
+          <div class="code-block">CI:NOMBRE:APELLIDO:TELEFONO:CUOTA_SOCIAL:MATRICULA_MEDICO:FECHA_INGRESO</div>
+          <p style="margin: 8px 0 4px 0;"><strong>Lista de Médicos (<code>db/medicos.txt</code>):</strong></p>
+          <div class="code-block">MATRICULA:NOMBRE:APELLIDO</div>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 24%;">Campo</th>
+              <th style="width: 26%;">Formato</th>
+              <th>Regla y validación aplicada</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>Cédula (CI)</strong></td>
+              <td>Numérico (7 a 9 dígitos)</td>
+              <td>Clave única. El sistema comprueba que no se repita.</td>
+            </tr>
+            <tr>
+              <td><strong>Nombre y Apellido</strong></td>
+              <td>Texto por separado</td>
+              <td>Se solicitan en dos pasos para aceptar nombres compuestos.</td>
+            </tr>
+            <tr>
+              <td><strong>Teléfono</strong></td>
+              <td>Texto / Numérico</td>
+              <td>Contacto directo del socio registrado.</td>
+            </tr>
+            <tr>
+              <td><strong>Cuota Social</strong></td>
+              <td>Entero positivo</td>
+              <td>Valor numérico en pesos (validado con expresión regular).</td>
+            </tr>
+            <tr>
+              <td><strong>Médico Asignado</strong></td>
+              <td>Matrícula (ej: MP001)</td>
+              <td>Debe coincidir con un médico existente en la lista.</td>
+            </tr>
+            <tr>
+              <td><strong>Fecha de Ingreso</strong></td>
+              <td>Fecha (AAAA-MM-DD)</td>
+              <td>Asigna la fecha del día automáticamente al presionar Enter.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+    </div>
+
+    <!-- Pie de página 1 -->
+    <footer class="page-footer">
+      <span>Gestión de Mutualista – Shell Script</span>
+      <span>Página 1 de 2</span>
+    </footer>
+  </div>
+
+  <!-- PÁGINA 2: Operaciones, Consultas y Conclusión -->
+  <div class="a4-page">
+    <div class="page-content">
+
+      <section>
+        <h2>Operaciones del Sistema</h2>
+
+        <h3>1. Menú Principal y Salida Controlada</h3>
+        <p>
+          La aplicación se inicia con <code>bash app.sh</code> y mantiene un bucle continuo de opciones. Siguiendo las directivas de la letra, la opción <strong>5 (Salir)</strong> es la única vía para finalizar la ejecución.
+        </p>
+
+        <h3>2. Altas y Modificaciones Seguras</h3>
+        <p>
+          Durante el alta se valida que la cédula sea numérica y no se encuentre registrada. En las modificaciones se puede actualizar individualmente cualquier campo (nombre, apellido, teléfono, cuota, médico o fecha) conservando intactos los demás valores.
+        </p>
+
+        <h3>3. Baja con Confirmación y Copias de Seguridad</h3>
+        <p>
+          Al solicitar una baja, el sistema muestra el registro encontrado y exige confirmación expresa (<code>s/n</code>). Toda operación de alta, baja o edición genera previamente una copia de respaldo fecheada dentro del directorio <code>.bak/</code>.
+        </p>
+      </section>
+
+      <section>
+        <h2>Módulo de Consultas</h2>
+        <p>
+          El submenú de consultas implementa los reportes exigidos mediante lecturas nativas con <code>while</code> y <code>cut</code>:
+        </p>
+
+        <table>
+          <thead>
+            <tr>
+              <th style="width: 12%;">Opción</th>
+              <th style="width: 32%;">Consulta</th>
+              <th>Descripción y funcionamiento</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>1</strong></td>
+              <td>Pacientes por médico</td>
+              <td>Ingresando la matrícula muestra todos los socios que atiende dicho médico.</td>
+            </tr>
+            <tr>
+              <td><strong>2</strong></td>
+              <td>Cuota de un socio</td>
+              <td>Busca por CI y expone el monto mensual correspondiente.</td>
+            </tr>
+            <tr>
+              <td><strong>3</strong></td>
+              <td>Médico de un paciente</td>
+              <td>Relaciona al paciente con la base de médicos y muestra su médico de cabecera.</td>
+            </tr>
+            <tr>
+              <td><strong>4</strong></td>
+              <td>Ingreso mensual total</td>
+              <td>Suma acumulativa de todas las cuotas sociales activas en el padrón.</td>
+            </tr>
+            <tr>
+              <td><strong>5</strong></td>
+              <td>Socios por médico (Extra)</td>
+              <td>Reporte consolidado que cuenta cuántos pacientes tiene cada profesional.</td>
+            </tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section>
+        <h2>Conclusiones y Ayuda</h2>
+        <p>
+          El programa cuenta además con un manual de uso no interactivo accesible mediante <code>bash app.sh --help</code>. El desarrollo se ajusta a los contenidos vistos en clase, logrando un código prolijo, modular y fácil de defender en el aula.
+        </p>
+      </section>
+
+    </div>
+
+    <!-- Pie de página 2 con espacio para firmas -->
+    <footer class="page-footer" style="padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; align-items: flex-end; justify-content: space-between;">
+      <div>
+        <p style="margin: 0; font-size: 11px;"><strong>Entrega de Proyecto</strong> – Noviembre 2026</p>
+        <p style="margin: 0; font-size: 10px; color: var(--text-muted);">Página 2 de 2</p>
+      </div>
+      <div style="text-align: right;">
+        <p style="margin-bottom: 2px; font-size: 11px;">_________________________________________</p>
+        <p style="margin: 0; font-size: 10.5px; color: var(--text-muted);">Firma de los integrantes</p>
+      </div>
+    </footer>
+  </div>
+
+</body>
+</html>

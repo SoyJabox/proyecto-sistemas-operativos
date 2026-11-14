@@ -2,27 +2,27 @@
 echo ---------------- GESTION DE PACIENTES ----------------
 echo "Integrantes: Adrian Fros, Javier Miranda"
 
-## Variables Globales
-ARG=$1                        # Qué opción pidió el usuario (1-5 o --help)
-BD="./db/pacientes.txt"       # Archivo donde se guardan los datos de los pacientes
-BD_MEDICOS="./db/medicos.txt" # Archivo estático con la lista de médicos
+## Archivos de la base de datos
+argumento=$1                                   # Opcion pasada por comando (ej: --help o numero)
+archivo_pacientes="./db/pacientes.txt"         # Archivo donde se guardan los pacientes
+archivo_medicos="./db/medicos.txt"             # Archivo con la lista de medicos
 
-## Funciones logicas
+## Funciones de inicializacion y ayuda
 
-function_init() {
-  # Crea la carpeta db y archivos con datos de prueba si no existen
+inicializar_archivos() {
+  # Crea la carpeta db y los archivos de texto si todavia no existen
   mkdir -p "./db"
-  if [[ ! -f "$BD_MEDICOS" ]]; then
-    echo -e "1001:Carlos:Gomez\n1002:Laura:Fernandez\n1003:Martin:Silva" >"$BD_MEDICOS"
+  if [[ ! -f "$archivo_medicos" ]]; then
+    echo -e "MP001:Roberto:Alvarez\nMP002:Patricia:Morales\nMP003:Fernando:Castro\nMP004:Gabriela:Rios" >"$archivo_medicos"
   fi
-  if [[ ! -f "$BD" ]]; then
-    echo -e "45123456:Juan:Perez:099111222:2500:1001:2024-03-15\n51234567:Ana:Rodriguez:098333444:3200:1002:2025-01-10" >"$BD"
+  if [[ ! -f "$archivo_pacientes" ]]; then
+    echo -e "12345678:Juan:Perez:099123456:1500:MP001:2020-03-15\n23456789:Maria:Gonzalez:098234567:1500:MP002:2019-07-22" >"$archivo_pacientes"
   fi
 }
 
-function_help() {
+mostrar_ayuda() {
   cat <<'EOF'
-SISTEMA DE GESTION DE PACIENTES - *IA*
+SISTEMA DE GESTION DE PACIENTES
 
 USO:
   bash app.sh [OPCION]
@@ -52,181 +52,188 @@ EOF
   exit 0
 }
 
-function_guardar_paciente() {
-  # Recibe: CI, nombre y apellido, teléfono, cuota, matrícula del médico, fecha de ingreso
-  local DNI=$1
-  local NOM=$2
-  # Transformamos los espacios en NOM a dos puntos para mantener el formato NOMBRE:APELLIDO
-  local NOM=${NOM// /:} ## Apoyado de la IA
-  local TEL=$3
-  local CSM=$4
-  local MED_MAT=$5
-  local FECHA_ING=$6
+guardar_paciente() {
+  # Parametros: ci, nombre, apellido, telefono, cuota, matricula_medico, fecha_ingreso
+  local ci=$1
+  local nombre=$2
+  local apellido=$3
+  local telefono=$4
+  local cuota=$5
+  local matricula_medico=$6
+  local fecha_ingreso=$7
 
-  # Armamos la línea en formato: CI:NOMBRE:APELLIDO:TELEFONO:CUOTA:MATRICULA:FECHA_INGRESO
-  local linea="${DNI}:${NOM}:${TEL}:${CSM}:${MED_MAT}:${FECHA_ING}"
+  # Armamos la linea separada por dos puntos
+  local linea="${ci}:${nombre}:${apellido}:${telefono}:${cuota}:${matricula_medico}:${fecha_ingreso}"
 
-  # Agregamos la línea al archivo de base de datos
-  echo "$linea" >>"$BD"
+  # Guardamos la linea al final del archivo
+  echo "$linea" >>"$archivo_pacientes"
 
-  echo "Paciente ${DNI} guardado exitosamente en la base de datos."
+  echo "Paciente con CI ${ci} guardado con exito."
 }
 
-function_backup() {
-  # Recibe la ruta de la base de datos
-  local BD="$1"
-  local FECHA=$(date +"%Y%m%d_%H%M%S")                 # Fecha y hora actual para el nombre del backup
-  local NOMBRE_ARCHIVO=$(basename "$BD")               # Obtiene solo el nombre del archivo
-  local NOMBRE_BAK="${NOMBRE_ARCHIVO}.backup.${FECHA}" # Nombre final con fecha y hora
-  local BACKUP_DIR="./.bak"                            # Carpeta donde se guardarán los respaldos
+crear_respaldo() {
+  local archivo_origen="$1"
+  local fecha_hora=$(date +"%Y%m%d_%H%M%S")
+  local nombre_archivo=$(basename "$archivo_origen")
+  local carpeta_respaldos="./.bak"
+  local nombre_respaldo="${nombre_archivo}.backup.${fecha_hora}"
 
-  # Creamos la carpeta .bak si aún no existe
-  mkdir -p "$BACKUP_DIR"
+  mkdir -p "$carpeta_respaldos"
+  cp "$archivo_origen" "${carpeta_respaldos}/${nombre_respaldo}"
 
-  # Copiamos la base de datos a la carpeta .bak con el nombre fecheado
-  cp "$BD" "${BACKUP_DIR}/${NOMBRE_BAK}"
-
-  echo "Backup creado: ${BACKUP_DIR}/${NOMBRE_BAK}"
+  echo "Respaldo creado: ${carpeta_respaldos}/${nombre_respaldo}"
 }
 
-## Funciones principales
+## Operaciones del sistema
 
-function_alta() {
+alta_paciente() {
   echo "--- Alta de paciente ---"
-  read -p "Ingresa la CI del paciente (8 digitos, o 0 para volver): " DNI
+  read -p "Ingresa la CI del paciente (7 a 9 digitos, o 0 para volver): " ci
 
-  # 1. Primero verificamos si el usuario quiere volver (0)
-  if [[ "$DNI" == "0" ]]; then
+  # Si el usuario ingresa 0 vuelve al menu
+  if [[ "$ci" == "0" ]]; then
     echo "Volviendo al menu..."
     return
   fi
 
-  # 2. Validamos que la CI tenga exactamente 8 dígitos (solo números)
-  if [[ "$DNI" =~ ^[0-9]{8}$ ]]; then
-    echo "Input valido: $DNI"
+  # Validamos que la cedula tenga entre 7 y 9 digitos numericos
+  if [[ "$ci" =~ ^[0-9]{7,9}$ ]]; then
+    echo "CI valida: $ci"
   else
-    echo "Error: Debes ingresar exactamente 8 digitos o solo '0' para volver."
+    echo "Error: Debes ingresar entre 7 y 9 digitos numericos o '0' para volver."
     return
   fi
 
-  # 3. Buscamos en la base de datos si esa CI ya está registrada
-  if grep -q "^$DNI:" "$BD"; then
-    echo "Error: El paciente con CI $DNI ya esta registrado."
+  # Verificamos si la cedula ya existe en el archivo
+  if grep -q "^$ci:" "$archivo_pacientes"; then
+    echo "Error: El paciente con CI $ci ya esta registrado."
     return
   fi
 
-  # Pedimos los datos del paciente
-  read -p "Por favor, ingrese el primer nombre y primer apellido: " NOM
-  read -p "Por favor, ingrese el telefono: " TEL
-  read -p "Por favor, ingrese la cuota social mensual: " CSM
+  read -p "Por favor, ingrese el nombre: " nombre
+  read -p "Por favor, ingrese el apellido: " apellido
+  read -p "Por favor, ingrese el telefono: " telefono
 
-  # Mostramos médicos disponibles y validamos que la matrícula exista
+  # Validamos que la cuota sea un numero
+  read -p "Por favor, ingrese la cuota social mensual: " cuota
+  if [[ ! "$cuota" =~ ^[0-9]+$ ]]; then
+    echo "Error: La cuota debe ser un valor numerico."
+    return
+  fi
+
+  # Mostramos los medicos y validamos la matricula
   echo "Medicos disponibles:"
-  cat "$BD_MEDICOS"
-  read -p "Por favor, ingrese la matricula del medico de cabecera: " MED_MAT
-  if ! grep -q "^$MED_MAT:" "$BD_MEDICOS"; then
-    echo "Error: La matricula $MED_MAT no existe en la lista de medicos."
+  cat "$archivo_medicos"
+  read -p "Por favor, ingrese la matricula del medico de cabecera: " matricula
+  if ! grep -q "^$matricula:" "$archivo_medicos"; then
+    echo "Error: La matricula $matricula no existe en la lista de medicos."
     return
   fi
 
-  local HOY=$(date +"%Y-%m-%d")
-  read -p "Por favor, ingrese la fecha de ingreso [Enter para $HOY]: " FECHA_ING
-  FECHA_ING=${FECHA_ING:-$HOY}
+  local fecha_hoy=$(date +"%Y-%m-%d")
+  read -p "Por favor, ingrese la fecha de ingreso [Enter para $fecha_hoy]: " fecha_ingreso
+  fecha_ingreso=${fecha_ingreso:-$fecha_hoy}
 
-  # Hacemos un respaldo antes de guardar
-  function_backup "$BD"
+  # Hacemos un respaldo del archivo antes de agregar
+  crear_respaldo "$archivo_pacientes"
 
-  # Guardamos el nuevo paciente en la base de datos
-  function_guardar_paciente "$DNI" "$NOM" "$TEL" "$CSM" "$MED_MAT" "$FECHA_ING"
+  # Guardamos el paciente
+  guardar_paciente "$ci" "$nombre" "$apellido" "$telefono" "$cuota" "$matricula" "$fecha_ingreso"
 
   echo "Paciente añadido exitosamente."
 }
 
-function_baja() {
+baja_paciente() {
   echo "--- Baja de paciente ---"
-  read -p "Ingrese la CI del paciente a eliminar: " DNI
+  read -p "Ingrese la CI del paciente a eliminar: " ci
 
-  # Verificar si la CI existe en la base de datos
-  if ! grep -q "^$DNI:" "$BD"; then
-    echo "No se encontro ningun paciente con CI $DNI."
+  # Verificar si la cedula existe
+  if ! grep -q "^$ci:" "$archivo_pacientes"; then
+    echo "No se encontro ningun paciente con CI $ci."
     return
   fi
 
-  # Mostrar el registro actual
-  echo "Registro actual:"
-  grep "^$DNI:" "$BD"
+  # Mostrar el registro encontrado
+  echo "Registro encontrado:"
+  grep "^$ci:" "$archivo_pacientes"
 
-  # Realizar el respaldo antes de eliminar
-  local FECHA=$(date +"%Y%m%d_%H%M%S")
-  local NOMBRE_BAK="deleted_${FECHA}.txt.bak"
-  local BACKUP_DIR="./.bak"
+  # Pedir confirmacion
+  read -p "¿Esta seguro que desea eliminar este paciente? (s/n): " confirmacion
+  if [[ "$confirmacion" != "s" && "$confirmacion" != "S" ]]; then
+    echo "Operacion cancelada."
+    return
+  fi
 
-  mkdir -p "$BACKUP_DIR"
-  cp "$BD" "${BACKUP_DIR}/${NOMBRE_BAK}"
-  echo "Backup creado: ${BACKUP_DIR}/${NOMBRE_BAK}"
+  # Respaldo antes de eliminar
+  crear_respaldo "$archivo_pacientes"
 
-  # Eliminar el registro del paciente
-  sed -i "/^$DNI:/d" "$BD"
+  # Eliminamos la linea con sed
+  sed -i "/^$ci:/d" "$archivo_pacientes"
 
   echo "Paciente eliminado exitosamente."
 }
 
-function_modificar() {
+modificar_paciente() {
   echo "--- Modificar registro de paciente ---"
-  read -p "Ingrese la CI del paciente a modificar: " DNI
+  read -p "Ingrese la CI del paciente a modificar: " ci
 
-  # Verificar si la CI existe en la base de datos
-  if ! grep -q "^$DNI:" "$BD"; then
-    echo "No se encontro ningun paciente con CI $DNI."
+  # Verificar si la cedula existe
+  if ! grep -q "^$ci:" "$archivo_pacientes"; then
+    echo "No se encontro ningun paciente con CI $ci."
     return
   fi
 
-  # Mostrar el registro actual y separar sus campos
-  local linea=$(grep "^$DNI:" "$BD")
+  # Obtener la linea actual y sus campos
+  local linea=$(grep "^$ci:" "$archivo_pacientes")
   echo "Registro actual: $linea"
 
-  # Prefijo F -> Field -> Campos
-  local F_CI=$(echo "$linea" | cut -d':' -f1)
-  local F_NOM=$(echo "$linea" | cut -d':' -f2)
-  local F_APE=$(echo "$linea" | cut -d':' -f3)
-  local F_TEL=$(echo "$linea" | cut -d':' -f4)
-  local F_CSM=$(echo "$linea" | cut -d':' -f5)
-  local F_MED=$(echo "$linea" | cut -d':' -f6)
-  local F_FEC=$(echo "$linea" | cut -d':' -f7)
+  local ci_actual=$(echo "$linea" | cut -d':' -f1)
+  local nombre_actual=$(echo "$linea" | cut -d':' -f2)
+  local apellido_actual=$(echo "$linea" | cut -d':' -f3)
+  local telefono_actual=$(echo "$linea" | cut -d':' -f4)
+  local cuota_actual=$(echo "$linea" | cut -d':' -f5)
+  local matricula_actual=$(echo "$linea" | cut -d':' -f6)
+  local fecha_actual=$(echo "$linea" | cut -d':' -f7)
 
-  # Solicitar qué campo desea modificar
   echo "¿Que campo desea modificar?"
-  echo "1. Nombre y Apellido"
-  echo "2. Telefono"
-  echo "3. Cuota Social Mensual"
-  echo "4. Matricula del Medico de Cabecera"
-  echo "5. Fecha de Ingreso"
-  read -p "Opcion: " FIELD
+  echo "1. Nombre"
+  echo "2. Apellido"
+  echo "3. Telefono"
+  echo "4. Cuota Social Mensual"
+  echo "5. Matricula del Medico de Cabecera"
+  echo "6. Fecha de Ingreso"
+  read -p "Opcion: " campo_elegido
 
-  case $FIELD in
+  case $campo_elegido in
   1)
-    read -p "Por favor, ingrese el nuevo nombre y apellido: " NOM
-    F_NOM=$(echo "$NOM" | cut -d' ' -f1) # Capturamos el nombre, antes del espacio
-    F_APE=$(echo "$NOM" | cut -d' ' -f2) # Capturamos el apellido, despues del espacio
+    read -p "Por favor, ingrese el nuevo nombre: " nombre_actual
     ;;
   2)
-    read -p "Por favor, ingrese el nuevo telefono: " F_TEL
+    read -p "Por favor, ingrese el nuevo apellido: " apellido_actual
     ;;
   3)
-    read -p "Por favor, ingrese la nueva cuota social mensual: " F_CSM
+    read -p "Por favor, ingrese el nuevo telefono: " telefono_actual
     ;;
   4)
+    read -p "Por favor, ingrese la nueva cuota social mensual: " nueva_cuota
+    if [[ ! "$nueva_cuota" =~ ^[0-9]+$ ]]; then
+      echo "Error: La cuota debe ser un numero."
+      return
+    fi
+    cuota_actual=$nueva_cuota
+    ;;
+  5)
     echo "Medicos disponibles:"
-    cat "$BD_MEDICOS"
-    read -p "Por favor, ingrese la nueva matricula del medico: " NEW_MED
-    if ! grep -q "^$NEW_MED:" "$BD_MEDICOS"; then
+    cat "$archivo_medicos"
+    read -p "Por favor, ingrese la nueva matricula del medico: " nueva_matricula
+    if ! grep -q "^$nueva_matricula:" "$archivo_medicos"; then
       echo "Error: Matricula de medico inexistente."
       return
     fi
-    F_MED=$NEW_MED
+    matricula_actual=$nueva_matricula
     ;;
-  5)
-    read -p "Por favor, ingrese la nueva fecha de ingreso (YYYY-MM-DD): " F_FEC
+  6)
+    read -p "Por favor, ingrese la nueva fecha de ingreso (YYYY-MM-DD): " fecha_actual
     ;;
   *)
     echo "Opcion no valida."
@@ -234,27 +241,27 @@ function_modificar() {
     ;;
   esac
 
-  local nueva_linea="${F_CI}:${F_NOM}:${F_APE}:${F_TEL}:${F_CSM}:${F_MED}:${F_FEC}"
+  local linea_modificada="${ci_actual}:${nombre_actual}:${apellido_actual}:${telefono_actual}:${cuota_actual}:${matricula_actual}:${fecha_actual}"
 
-  # Realizar el respaldo antes de modificar
-  function_backup "$BD"
+  # Respaldo antes de modificar
+  crear_respaldo "$archivo_pacientes"
 
-  # Reemplazar la línea vieja con la nueva en el archivo de base de datos
-  sed -i "/^$DNI:/c\\$nueva_linea" "$BD"
+  # Reemplazar la linea en el archivo
+  sed -i "/^$ci:/c\\$linea_modificada" "$archivo_pacientes"
 
-  echo "Campo modificado exitosamente."
+  echo "Registro modificado exitosamente."
 }
 
-function_buscar_por_dni() {
-  read -p "Ingrese la CI del paciente: " DNI
-  if grep -q "^$DNI:" "$BD"; then
-    grep "^$DNI:" "$BD"
+buscar_por_ci() {
+  read -p "Ingrese la CI del paciente: " ci
+  if grep -q "^$ci:" "$archivo_pacientes"; then
+    grep "^$ci:" "$archivo_pacientes"
   else
-    echo "No se encontro ningun paciente con CI $DNI."
+    echo "No se encontro ningun paciente con CI $ci."
   fi
 }
 
-function_consultar() {
+consultas() {
   echo "--- Consultar registros de paciente ---"
   echo "
         PRESIONA 1: NOMBRE Y APELLIDO DE PACIENTES DE UN MEDICO
@@ -264,56 +271,74 @@ function_consultar() {
         PRESIONA 5: CANTIDAD DE PACIENTES POR MEDICO (CONSULTA EXTRA)
         PRESIONA 6: MOSTRAR TODOS LOS REGISTROS / BUSCAR POR CI
         "
-  read -p "Opcion: " CONS_INPUT
+  read -p "Opcion: " opcion_consulta
 
-  case $CONS_INPUT in
+  case $opcion_consulta in
   1)
-    cat "$BD_MEDICOS"
-    read -p "Ingrese matricula del medico: " MAT
-    echo "Pacientes del medico $MAT:"
-    awk -F':' -v m="$MAT" '$6 == m {print $2, $3}' "$BD"
+    cat "$archivo_medicos"
+    read -p "Ingrese matricula del medico: " matricula_buscada
+    echo "Pacientes del medico $matricula_buscada:"
+    while IFS=':' read -r p_ci p_nombre p_apellido p_telefono p_cuota p_matricula p_fecha; do
+      if [[ "$p_matricula" == "$matricula_buscada" ]]; then
+        echo "$p_nombre $p_apellido"
+      fi
+    done <"$archivo_pacientes"
     ;;
   2)
-    read -p "Ingrese la CI del socio: " DNI
-    if grep -q "^$DNI:" "$BD"; then
-      local linea=$(grep "^$DNI:" "$BD")
-      local NOM=$(echo "$linea" | cut -d':' -f2,3 | tr ':' ' ')
-      local CUOTA=$(echo "$linea" | cut -d':' -f5)
-      echo "Socio: $NOM | Cuota mensual: \$$CUOTA"
+    read -p "Ingrese la CI del socio: " ci_buscada
+    if grep -q "^$ci_buscada:" "$archivo_pacientes"; then
+      local linea=$(grep "^$ci_buscada:" "$archivo_pacientes")
+      local nombre=$(echo "$linea" | cut -d':' -f2)
+      local apellido=$(echo "$linea" | cut -d':' -f3)
+      local cuota=$(echo "$linea" | cut -d':' -f5)
+      echo "Socio: $nombre $apellido | Cuota mensual: \$$cuota"
     else
-      echo "No se encontro ningun socio con CI $DNI."
+      echo "No se encontro ningun socio con CI $ci_buscada."
     fi
     ;;
   3)
-    read -p "Ingrese la CI del paciente: " DNI
-    if grep -q "^$DNI:" "$BD"; then
-      local linea=$(grep "^$DNI:" "$BD")
-      local PAC=$(echo "$linea" | cut -d':' -f2,3 | tr ':' ' ')
-      local MAT=$(echo "$linea" | cut -d':' -f6)
-      local MED=$(grep "^$MAT:" "$BD_MEDICOS" | cut -d':' -f2,3 | tr ':' ' ')
-      echo "Paciente: $PAC | Medico de cabecera: $MED (Matricula: $MAT)"
+    read -p "Ingrese la CI del paciente: " ci_buscada
+    if grep -q "^$ci_buscada:" "$archivo_pacientes"; then
+      local linea=$(grep "^$ci_buscada:" "$archivo_pacientes")
+      local nombre_pac=$(echo "$linea" | cut -d':' -f2)
+      local apellido_pac=$(echo "$linea" | cut -d':' -f3)
+      local matricula_med=$(echo "$linea" | cut -d':' -f6)
+      local linea_med=$(grep "^$matricula_med:" "$archivo_medicos")
+      local nombre_med=$(echo "$linea_med" | cut -d':' -f2)
+      local apellido_med=$(echo "$linea_med" | cut -d':' -f3)
+      echo "Paciente: $nombre_pac $apellido_pac | Medico de cabecera: $nombre_med $apellido_med (Matricula: $matricula_med)"
     else
-      echo "No se encontro ningun paciente con CI $DNI."
+      echo "No se encontro ningun paciente con CI $ci_buscada."
     fi
     ;;
   4)
-    local TOTAL=$(awk -F':' '{suma += $5} END {print suma}' "$BD")
-    echo "Total mensual de ingreso de la mutualista por cuotas sociales: \$$TOTAL"
+    local total=0
+    while IFS=':' read -r p_ci p_nombre p_apellido p_telefono p_cuota p_matricula p_fecha; do
+      if [[ "$p_cuota" =~ ^[0-9]+$ ]]; then
+        total=$((total + p_cuota))
+      fi
+    done <"$archivo_pacientes"
+    echo "Total mensual de ingreso de la mutualista por cuotas sociales: \$$total"
     ;;
   5)
     echo "Cantidad de pacientes asignados por medico:"
-    while IFS=':' read -r MAT NOM APE; do
-      local CANT=$(awk -F':' -v m="$MAT" '$6 == m {c++} END {print c+0}' "$BD")
-      echo "Dr/a. $NOM $APE (Mat. $MAT): $CANT paciente(s)"
-    done <"$BD_MEDICOS"
+    while IFS=':' read -r m_matricula m_nombre m_apellido; do
+      local contador=0
+      while IFS=':' read -r p_ci p_nombre p_apellido p_telefono p_cuota p_matricula p_fecha; do
+        if [[ "$p_matricula" == "$m_matricula" ]]; then
+          contador=$((contador + 1))
+        fi
+      done <"$archivo_pacientes"
+      echo "Dr/a. $m_nombre $m_apellido (Mat. $m_matricula): $contador paciente(s)"
+    done <"$archivo_medicos"
     ;;
   6)
     echo "Presione 1 para mostrar todos los registros o 2 para buscar por CI:"
-    read -p "Opcion: " SUB_OP
-    if [[ $SUB_OP == 1 ]]; then
-      cat "$BD"
+    read -p "Opcion: " sub_opcion
+    if [[ $sub_opcion == 1 ]]; then
+      cat "$archivo_pacientes"
     else
-      function_buscar_por_dni
+      buscar_por_ci
     fi
     ;;
   *)
@@ -322,15 +347,14 @@ function_consultar() {
   esac
 }
 
-main() {
-  local USER_INPUT=$1
+menu_principal() {
+  local opcion_usuario=$1
 
-  # Bucle principal: la única forma de salir es eligiendo la opción 5
+  # Bucle principal: solo se sale eligiendo la opcion 5
   while true; do
-    if [[ -z "$USER_INPUT" || "$USER_INPUT" -lt 1 || "$USER_INPUT" -gt 5 ]] 2>/dev/null; then
+    if [[ -z "$opcion_usuario" || "$opcion_usuario" -lt 1 || "$opcion_usuario" -gt 5 ]] 2>/dev/null; then
       echo ""
       echo "Hola $(whoami), ¿Que quieres hacer?"
-      ### Menú de opciones
       echo "
         PRESIONA 1: ALTA DE PACIENTE
         PRESIONA 2: BAJA DE PACIENTE
@@ -338,23 +362,21 @@ main() {
         PRESIONA 4: CONSULTAS
         PRESIONA 5: SALIR
         "
-      ### Pedimos la decisión del usuario
-      read -p "Decision: " USER_INPUT
+      read -p "Decision: " opcion_usuario
     fi
 
-    ### Evaluamos qué opción eligió el usuario
-    case $USER_INPUT in
+    case $opcion_usuario in
     1)
-      function_alta
+      alta_paciente
       ;;
     2)
-      function_baja
+      baja_paciente
       ;;
     3)
-      function_modificar
+      modificar_paciente
       ;;
     4)
-      function_consultar
+      consultas
       ;;
     5)
       echo "Saliendo del sistema..."
@@ -365,15 +387,15 @@ main() {
       ;;
     esac
 
-    # Limpiamos USER_INPUT para que vuelva a mostrar el menú en la siguiente iteración
-    USER_INPUT=""
+    # Limpiamos opcion_usuario para que en la siguiente vuelta muestre el menu
+    opcion_usuario=""
   done
 }
 
-### Inicio de programa
-if [[ $ARG == '--help' || $ARG == '-h' || $ARG == 'help' || $ARG == '-help' ]]; then
-  function_help
+### Inicio del programa
+if [[ $argumento == '--help' || $argumento == '-h' || $argumento == 'help' || $argumento == '-help' ]]; then
+  mostrar_ayuda
 else
-  function_init
-  main "$ARG"
+  inicializar_archivos
+  menu_principal "$argumento"
 fi

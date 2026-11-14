@@ -1,0 +1,4 @@
+.bak/
+db_e2e_backup/
+db_backup_edge/
+*.bak
