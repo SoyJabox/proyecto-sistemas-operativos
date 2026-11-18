@@ -1,202 +1,184 @@
-# **Documentación del Sistema de Gestión de Pacientes**
+# Informe del Proyecto - Gestión de Pacientes
 
-## **Proyecto Académico de Sistemas Operativos**
-
-Este documento constituye la guía oficial para el uso, comprensión y mantenimiento del **Sistema de Gestión de Pacientes de Mutualista**. Ha sido diseñado con una redacción clara y accesible para que cualquier usuario o evaluador pueda comprender cómo funciona cada componente del programa.
-
-El proyecto fue desarrollado por Adrián Fros y Javier Miranda para el curso de 2do Año de Sistemas Operativos (B.T. Informática, Prof. Sandro Amaral).
+**Materia:** Sistemas Operativos (2do Año - B.T. Informática)  
+**Docente:** Prof. Sandro Amaral  
+**Integrantes:** Adrián Fros y Javier Miranda  
 
 ---
 
-# **1. Propósito y Objetivos del Sistema**
+## 1. Introducción
 
-El objetivo principal de esta aplicación es resolver la administración interna de socios y médicos de una entidad mutualista médica mediante una herramienta ligera que se ejecuta en la consola de comandos de Linux.
+Este proyecto consiste en un programa en Bash para administrar los socios y médicos de una mutualista médica desde la terminal de Linux.
 
-Entre los objetivos específicos destacan:
-
-- **Almacenamiento liviano:** No requiere bases de datos complejas ni dependencias externas; todo se maneja en archivos de texto plano.
-- **Herramientas nativas de Bash:** Resuelto utilizando comandos y estructuras nativas (`while`, `read`, `cut`, `grep`, `sed` y aritmética de Bash).
-- **Seguridad e integridad de datos:** Implementa un sistema automatizado que crea respaldos con marca temporal (`.bak`) antes de cualquier alta, modificación o borrado de información.
-- **Control estricto de registros:** Valida que la identificación de los pacientes sea única (no duplicados), formatos válidos y que los médicos asignados existan en el sistema.
-- **Generación de informes:** Permite consultar la recaudación mensual total, listar pacientes por médico, conocer el médico de cabecera de un afiliado y contabilizar pacientes asignados a cada profesional.
+El objetivo fue resolver todas las funciones pedidas utilizando archivos de texto simples (`.txt`) y los comandos vistos en clase (`while`, `read`, `cut`, `grep`, `mv` y sumas básicas en Bash), sin depender de bases de datos externas ni de comandos que no dimos en el curso como `awk` o `sed`.
 
 ---
 
-# **2. Estructura de Datos y Entidades**
+## 2. Cómo se guardan los datos
 
-El sistema organiza la información a través de dos entidades principales: el **Paciente** y el **Médico**. Cada registro se almacena en una línea separada dentro de un archivo de texto plano, utilizando el símbolo de dos puntos (`:`) como delimitador entre campos.
+Toda la información se guarda dentro de la carpeta `db/` en dos archivos de texto, donde cada dato va separado por dos puntos (`:`):
 
-### **Entidad Paciente (`db/pacientes.txt`)**
+### Archivo de Pacientes (`db/pacientes.txt`)
+Cada línea representa a un paciente y guarda 11 datos en este orden:
 
-Representa a cada socio afiliado a la mutualista. Su estructura contiene siete datos esenciales:
-
-| Campo | Descripción | Formato / Validación | Ejemplo |
-|---|---|---|---|
-| **Cédula de Identidad** | Documento identificador único del socio. | Numérico (7 a 9 dígitos, no repetible) | 12345678 |
-| **Nombre** | Primer nombre (o nombres) del socio. | Texto | Juan |
-| **Apellido** | Apellido (o apellidos) del socio. | Texto | Pérez |
-| **Teléfono** | Número de contacto telefónico. | Numérico / Texto | 099123456 |
-| **Cuota Social** | Valor mensual pagado a la mutualista. | Entero positivo | 1500 |
-| **Matrícula Médico** | Código del médico de cabecera asignado. | Debe existir en `db/medicos.txt` | MP001 |
-| **Fecha de Ingreso** | Fecha de registro en la institución. | Formato AAAA-MM-DD (por defecto hoy) | 2024-03-15 |
-
-*Ejemplo de registro real dentro de la base de datos:*
 ```text
-12345678:Juan:Pérez:099123456:1500:MP001:2024-03-15
+CI:NOMBRE:APELLIDO:SEXO:ALTURA:EDAD:PESO:TELEFONO:CUOTA:MATRICULA:FECHA
 ```
 
-### **Entidad Médico (`db/medicos.txt`)**
-
-Guarda la información de los profesionales de la salud disponibles en la institución.
-
-| Campo | Descripción | Ejemplo |
+| Dato | Qué guarda | Ejemplo |
 |---|---|---|
-| **Matrícula** | Identificador único del profesional de salud. | MP001 |
-| **Nombre** | Nombre del médico. | Roberto |
-| **Apellido** | Apellido del médico. | Álvarez |
+| **CI** | Cédula de identidad (de 7 a 9 números, sin repetir) | `12345678` |
+| **Nombre** | Nombre del paciente | `Juan` |
+| **Apellido** | Apellido del paciente | `Perez` |
+| **Sexo** | Sexo del paciente (`M` o `F`) | `M` |
+| **Altura** | Estatura en metros | `1.75` |
+| **Edad** | Edad en años | `35` |
+| **Peso** | Peso en kilogramos | `78` |
+| **Teléfono** | Teléfono de contacto | `099123456` |
+| **Cuota** | Valor de la cuota mensual en números | `1500` |
+| **Matrícula** | Código del médico asignado | `MP001` |
+| **Fecha** | Fecha de ingreso (`AAAA-MM-DD`) | `2020-03-15` |
 
-*Ejemplo de registro real dentro de la base de datos:*
+*Ejemplo de línea en el archivo:*
 ```text
-MP001:Roberto:Álvarez
+12345678:Juan:Perez:M:1.75:35:78:099123456:1500:MP001:2020-03-15
 ```
 
-### **Relación entre Entidades**
+### Archivo de Médicos (`db/medicos.txt`)
+Contiene la lista de médicos disponibles en la mutualista:
 
-El sistema impone una relación de **1 a N** entre el paciente y su médico de cabecera:
-- Cada paciente tiene un único médico de cabecera asignado mediante la matrícula activa de este último.
-- Por su parte, un médico puede atender a múltiples pacientes registrados.
+```text
+MATRICULA:NOMBRE:APELLIDO
+```
 
----
+*Ejemplo de línea en el archivo:*
+```text
+MP001:Roberto:Alvarez
+```
 
-# **3. Reglas de Negocio y Validaciones**
-
-Para garantizar que la información almacenada sea correcta y consistente, el sistema aplica automáticamente las siguientes reglas:
-
-1. **Cédula de Identidad Única y Válida:** No se permite registrar a dos pacientes con el mismo número de cédula. La cédula debe tener entre 7 y 9 dígitos numéricos (permite ingresar `0` para cancelar la operación).
-2. **Existencia del Médico:** Al inscribir o modificar el médico de un paciente, el sistema comprueba que la matrícula exista en el catálogo de médicos (`db/medicos.txt`).
-3. **Monto de Cuota Social Válido:** La cuota debe ser un valor numérico entero positivo.
-4. **Respaldos Automáticos (`.bak/`):** Antes de agregar, modificar o eliminar registros, el programa genera una copia de seguridad fecheada en la carpeta oculta `.bak/` siguiendo el patrón:
-   ```text
-   pacientes.txt.backup.YYYYMMDD_HHMMSS
-   ```
-5. **Salida Imperativa:** El programa se mantiene en ejecución en un bucle interactivo continuo, siendo la opción `5 (Salir)` la única forma autorizada de finalizar el script.
+Cada paciente tiene asignado un médico mediante su matrícula, y un mismo médico puede atender a varios pacientes.
 
 ---
 
-# **4. Funcionamiento Detallado del Sistema**
+## 3. Controles y validaciones del programa
 
-El programa cuenta con un menú interactivo en consola y admite también parámetros directos por línea de comandos. Se ejecuta mediante:
+Para evitar que se carguen datos incorrectos en los archivos, el script revisa lo siguiente:
 
+1. **Cédula válida y sin repetir:** comprueba que la cédula tenga entre 7 y 9 dígitos numéricos y busca con `grep` que no esté ya anotada en `db/pacientes.txt`. También permite escribir `0` para cancelar y volver al menú.
+2. **Cuota numérica:** verifica que el monto de la cuota contenga solo números.
+3. **Médico existente:** antes de asignar o cambiar un médico, revisa que la matrícula ingresada exista en `db/medicos.txt`.
+4. **Copia de seguridad automática (`.bak/`):** antes de agregar, borrar o modificar un paciente, el programa copia el archivo original a la carpeta oculta `.bak/` agregándole la fecha y hora.
+5. **Salida únicamente con la opción 5:** el menú principal se repite dentro de un bucle `while true` y solo finaliza cuando el usuario elige la opción 5.
+
+---
+
+## 4. Funcionamiento de cada opción del menú
+
+El programa se inicia ejecutando `bash app.sh`. Si los archivos de la carpeta `db/` no existen, el script los crea automáticamente con datos de ejemplo.
+
+### 4.1 Alta de Paciente (Opción 1)
+Para que la carga de datos siga un orden lógico, el programa pide la información en tres etapas:
+1. **Datos del usuario:** solicita la cédula, **nombre**, **apellido**, **sexo** (`M`/`F`), **altura** (metros), **edad** (años), **peso** (kg), **teléfono** y **cuota mensual** (si se presiona `Enter` en los datos físicos, guarda `N/A` por defecto).
+2. **Médico de cabecera:** muestra la lista de médicos de `db/medicos.txt` y pide ingresar la **matrícula** correspondiente.
+3. **Fecha de ingreso:** pide la **fecha de ingreso** (si se presiona `Enter`, coloca automáticamente la fecha del día).
+
+Por último, crea una copia de respaldo en `.bak/` y guarda la nueva línea al final de `db/pacientes.txt`.
+
+### 4.2 Baja de Paciente (Opción 2)
+- Pide la cédula del paciente que se quiere eliminar.
+- Si lo encuentra, muestra sus datos en pantalla y pide confirmación (`s/n`).
+- Si el usuario confirma con `s`, crea un respaldo en `.bak/` y borra la línea del archivo filtrando con `grep -v` hacia un archivo temporal y renombrándolo con `mv`.
+
+### 4.3 Modificar un Registro (Opción 3)
+- Pide la cédula del paciente y muestra sus datos actuales.
+- Muestra un menú del 1 al 10 para elegir qué dato cambiar:
+  1. Nombre
+  2. Apellido
+  3. Sexo
+  4. Altura
+  5. Edad
+  6. Peso
+  7. Teléfono
+  8. Cuota Social Mensual
+  9. Matrícula del Médico de Cabecera
+  10. Fecha de Ingreso
+- Pide el nuevo valor, realiza las validaciones necesarias, hace el respaldo en `.bak/` y reemplaza la línea recorriendo el archivo con `while read` y guardándolo con `mv`.
+
+### 4.4 Consultas (Opción 4)
+Cuenta con un submenú de 10 consultas resueltas leyendo los archivos con `while IFS=':' read` y `cut`:
+- **1. Pacientes de un médico:** pide la matrícula y muestra el nombre y apellido de los socios que atiende ese médico.
+- **2. Cuota de un socio:** busca al socio por CI y muestra su nombre y el valor de su cuota mensual.
+- **3. Médico de un paciente:** busca al paciente por CI y muestra cómo se llama su médico de cabecera.
+- **4. Total mensual de ingresos:** recorre todos los pacientes sumando el valor de sus cuotas e informa el total mensual recaudado.
+- **5. Cantidad de pacientes por médico (Consulta extra):** recorre la lista de médicos y cuenta cuántos pacientes tiene asignado cada uno.
+- **6. Mostrar todos los registros / Buscar por CI:** permite listar todo el archivo o buscar a un paciente por cédula para ver su ficha completa con todos los datos personales y clínicos.
+- **7. Consultar pacientes por sexo:** filtra y muestra los pacientes según su sexo (`M` o `F`) e indica cuántos se encontraron.
+- **8. Consultar pacientes por edad:** permite buscar por una edad exacta (ej: `35`) o por un rango de edades (ej: `20-40`).
+- **9. Consultar pacientes por altura:** busca pacientes que coincidan con la altura indicada en metros (ej: `1.75`).
+- **10. Consultar pacientes por peso:** busca pacientes por un peso exacto en kilos (ej: `75`) o dentro de un rango (ej: `60-80`).
+
+---
+
+## 5. Organización de carpetas y archivos
+
+```text
+Proyecto-SO/
+├── app.sh                 # Script principal del programa
+├── README.md              # Informe general del proyecto
+├── db/                    # Carpeta de datos
+│   ├── pacientes.txt      # Lista de pacientes (11 campos separados por ':')
+│   └── medicos.txt        # Lista de médicos
+├── .bak/                  # Copias de seguridad automáticas
+├── doc/                   # Documentación y diagramas
+│   ├── informe_proyecto.html
+│   ├── Informe de Proyecto - Gestión de Pacientes.pdf
+│   ├── diagramas_flujo.md
+│   ├── paso-a-paso.md
+│   └── diagrama_claude/   # Diagramas de flujo en formato SVG
+└── test_e2e/              # Scripts de prueba
+    ├── run_tests.sh       # Pruebas generales del sistema (30 pruebas)
+    └── test_edge_cases.sh # Pruebas de validaciones y errores (6 pruebas)
+```
+
+---
+
+## 6. Uso desde la terminal y ayuda (`--help`)
+
+Para abrir el menú principal:
 ```bash
 bash app.sh
 ```
 
-Al arrancar, inicializa automáticamente los directorios y archivos con datos de prueba si aún no existen.
-
-## **4.1 Alta de Paciente (Opción 1)**
-
-Permite ingresar un nuevo socio al padrón:
-- Solicita la Cédula de Identidad (valida entre 7 y 9 dígitos y permite ingresar `0` para cancelar y volver al menú).
-- Comprueba que la CI no se encuentre ya registrada en `db/pacientes.txt`.
-- Solicita nombre y apellido en pasos separados (permitiendo nombres compuestos sin alterar delimitadores).
-- Solicita el teléfono y la cuota social (validando que sea un número).
-- Muestra los médicos disponibles y solicita la matrícula, validando su existencia.
-- Solicita la fecha de ingreso (al presionar `Enter` toma automáticamente la fecha actual `AAAA-MM-DD`).
-- Genera un respaldo preventivo en `.bak/` y añade la línea al final de `db/pacientes.txt`.
-
-## **4.2 Baja de Paciente (Opción 2)**
-
-Permite retirar a un socio del padrón activo:
-- Solicita la cédula del paciente a dar de baja.
-- Busca el registro; si no existe, informa el error en pantalla.
-- Muestra el registro completo del paciente encontrado y solicita confirmación expresa (`s/n`).
-- Si se confirma, crea un respaldo preventivo en `.bak/` y elimina la línea correspondiente mediante `sed -i`.
-
-## **4.3 Modificación de Registro (Opción 3)**
-
-Permite actualizar un dato individual de un socio manteniendo intactos los restantes:
-- Solicita la cédula del socio a modificar y muestra sus datos actuales.
-- Despliega el menú de selección de campo:
-  1. Nombre
-  2. Apellido
-  3. Teléfono
-  4. Cuota Social Mensual (valida formato numérico)
-  5. Matrícula del Médico de Cabecera (muestra catálogo y valida existencia)
-  6. Fecha de Ingreso
-- Genera un respaldo preventivo en `.bak/` y reemplaza la línea en el archivo utilizando `sed -i`.
-
-## **4.4 Submenú de Consultas (Opción 4)**
-
-Proporciona reportes interactivos procesados con lecturas nativas (`while IFS=':' read` y `cut`):
-- **Consulta 1 (Pacientes de un médico):** Solicita la matrícula y lista el nombre y apellido de todos los socios bajo su cuidado.
-- **Consulta 2 (Cuota de un socio):** Busca por CI e informa el nombre del socio y el monto exacto de su cuota social.
-- **Consulta 3 (Médico de un paciente):** Busca por CI y muestra el nombre del paciente junto con el nombre completo y matrícula de su médico de cabecera.
-- **Consulta 4 (Total mensual de recaudación):** Suma aritméticamente las cuotas de todos los socios activos e informa el ingreso mensual total de la mutualista.
-- **Consulta 5 (Pacientes por médico - Consulta Extra):** Recorre el catálogo de médicos y cuenta la cantidad exacta de pacientes asignados a cada doctor.
-- **Consulta 6 (Mostrar todos los registros / Buscar por CI):** Permite ver el padrón completo o buscar la ficha exacta de un socio por documento.
-
----
-
-# **5. Estructura de Archivos del Proyecto**
-
-```text
-proyecto-sistemas-operativos/
-├── app.sh                 # Script ejecutable principal en Bash
-├── README.md              # Documentación principal del repositorio
-├── db/                    # Carpeta de almacenamiento de datos
-│   ├── pacientes.txt      # Archivo delimitado por ':' con registros de pacientes
-│   └── medicos.txt        # Archivo delimitado por ':' con catálogo de médicos
-├── .bak/                  # Carpeta de respaldos automáticos temporales
-├── doc/                   # Documentación académica y especificaciones
-│   ├── informe_proyecto.html
-│   ├── Informe de Proyecto - Gestión de Pacientes.pdf
-│   ├── Documentacion_del_Proyecto.md.docx
-│   ├── paso-a-paso.md
-│   ├── Proyecto+Segundo+SO++2026+-+Pacientes.md
-│   └── diagrama_claude/   # Diagramas de flujo en formato SVG
-└── test_e2e/              # Suite de pruebas automatizadas
-    ├── run_tests.sh       # Pruebas End-to-End completas
-    └── test_edge_cases.sh # Pruebas de casos de borde y validaciones
-```
-
----
-
-# **6. Manual de Ayuda Integrado (`--help`)**
-
-El sistema incluye una función de ayuda ejecutable directamente desde la terminal al estilo Unix/Linux:
-
+Para ver la guía rápida de ayuda sin entrar al menú:
 ```bash
 bash app.sh --help
-# o también:
-bash app.sh -h
 ```
 
-También es posible ingresar directamente a una opción del menú indicándola como argumento:
-
+También se puede pasar el número de opción como parámetro para entrar directo:
 ```bash
-bash app.sh 1    # Ingresa directo al Alta de paciente
-bash app.sh 4    # Ingresa directo a Consultas
+bash app.sh 1    # Entra directo al Alta de paciente
+bash app.sh 4    # Entra directo al menú de Consultas
 ```
 
 ---
 
-# **7. Pruebas Automatizadas (Testing E2E)**
+## 7. Pruebas del programa
 
-El proyecto incluye dos suites de pruebas automatizadas en Bash para verificar la integridad de las funciones sin intervención manual:
+En la carpeta `test_e2e/` se incluyen dos scripts para probar que todas las funciones y validaciones respondan bien:
 
 ```bash
-# Ejecutar suite principal E2E (18 pruebas)
+# Ejecutar las 30 pruebas de funcionamiento general:
 bash test_e2e/run_tests.sh
 
-# Ejecutar suite de casos de borde (6 pruebas)
+# Ejecutar las 6 pruebas de casos de error:
 bash test_e2e/test_edge_cases.sh
 ```
 
 ---
 
-# **8. Transparencia en el Uso de Herramientas de IA**
+## 8. Uso de herramientas de IA
 
-En cumplimiento de las buenas prácticas académicas, se deja constancia del uso de herramientas de Inteligencia Artificial exclusivamente como asistencia en:
-- **Testing:** diseño y armado de las pruebas de extremo a extremo (`test_e2e/run_tests.sh` y `test_edge_cases.sh`).
-- **Formateo y maquetado de informes:** maquetado en HTML/CSS del informe para su exportación a PDF A4.
-- **Diagramación:** vectorización y ajuste visual de los diagramas de flujo de los procesos.
+De acuerdo con lo conversado en clase, se deja constancia de que se utilizaron herramientas de Inteligencia Artificial como apoyo para:
+- Armar los scripts de pruebas automáticas (`test_e2e/`).
+- Dar formato visual en HTML/CSS al informe para exportarlo a PDF en tamaño A4.
+- Pasar los diagramas de flujo a imágenes SVG.

@@ -44,9 +44,9 @@ assert_contains "$OUT" "ya esta registrado" "Test 3: Rechazar alta con CI repeti
 
 # Test 4: Alta exitosa de nuevo paciente
 # CI: 55443322, Nombre: Esteban, Apellido: Morales, Tel: 091112233, Cuota: 2500, Medico: MP001, Fecha: default
-OUT=$(printf "1\n55443322\nEsteban\nMorales\n091112233\n2500\nMP001\n\n5\n" | bash app.sh)
+OUT=$(printf "1\n55443322\nEsteban\nMorales\nM\n1.75\n35\n75\n091112233\n2500\nMP001\n\n5\n" | bash app.sh)
 assert_contains "$OUT" "Paciente añadido exitosamente" "Test 4.1: Alta de paciente exitosa en consola"
-CHECK_BD=$(grep "^55443322:Esteban:Morales:091112233:2500:MP001:" db/pacientes.txt || true)
+CHECK_BD=$(grep "^55443322:Esteban:Morales:M:1.75:35:75:091112233:2500:MP001:" db/pacientes.txt || true)
 if [[ -n "$CHECK_BD" ]]; then
   echo -e "${VERDE}[PASS]${RESET} Test 4.2: Registro persistido correctamente en db/pacientes.txt"
   ((PASSED++))
@@ -79,9 +79,9 @@ assert_contains "$OUT" "paciente(s)" "Test 5.5: Consulta 5 - Conteo de pacientes
 
 # Test 6: Modificación de paciente (Cambiar cuota de 2500 a 3000)
 # CI: 55443322, Opción campo 4 (Cuota), Nueva cuota: 3000
-OUT=$(printf "3\n55443322\n4\n3000\n5\n" | bash app.sh)
+OUT=$(printf "3\n55443322\n8\n3000\n5\n" | bash app.sh)
 assert_contains "$OUT" "Registro modificado exitosamente" "Test 6.1: Modificación exitosa en consola"
-CHECK_MOD=$(grep "^55443322:Esteban:Morales:091112233:3000:MP001:" db/pacientes.txt || true)
+CHECK_MOD=$(grep "^55443322:Esteban:Morales:M:1.75:35:75:091112233:3000:MP001:" db/pacientes.txt || true)
 if [[ -n "$CHECK_MOD" ]]; then
   echo -e "${VERDE}[PASS]${RESET} Test 6.2: Cuota actualizada a 3000 en el archivo"
   ((PASSED++))

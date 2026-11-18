@@ -30,15 +30,15 @@
     /* Reglas para formato de página A4 con espacios de respiración */
     @page {
       size: A4 portrait;
-      margin: 22mm 18mm 24mm 18mm; /* Márgenes superior e inferior generosos */
+      margin: 0;
     }
 
     body {
       font-family: 'Plus Jakarta Sans', sans-serif;
       color: var(--text);
       background-color: #eef2f3;
-      line-height: 1.65;
-      font-size: 13.5px;
+      line-height: 1.5;
+      font-size: 12.5px;
       -webkit-print-color-adjust: exact !important;
       print-color-adjust: exact !important;
     }
@@ -75,20 +75,29 @@
     /* Estructura de hoja A4 independiente */
     .a4-page {
       width: 210mm;
-      min-height: 297mm;
+      height: 297mm;
+      max-height: 297mm;
       margin: 0 auto 30px auto;
       background: var(--white);
-      padding: 24mm 22mm;
+      padding: 15mm 18mm;
       box-shadow: 0 4px 25px rgba(0, 0, 0, 0.07);
       border-radius: 4px;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
       position: relative;
+      overflow: hidden;
+      box-sizing: border-box;
+      page-break-after: always;
+    }
+
+    .a4-page:last-child {
+      page-break-after: avoid;
     }
 
     .page-content {
       flex: 1;
+      zoom: 0.95;
     }
 
     /* Ajustes específicos de impresión */
@@ -100,24 +109,17 @@
         display: none !important;
       }
       .a4-page {
-        width: 100% !important;
-        min-height: auto !important;
         margin: 0 !important;
-        padding: 0 !important;
         box-shadow: none !important;
         border-radius: 0 !important;
-        page-break-after: always;
-      }
-      .a4-page:last-child {
-        page-break-after: avoid;
       }
     }
 
     /* Encabezado */
     .header-banner {
       border-bottom: 2px solid var(--secondary);
-      padding-bottom: 18px;
-      margin-bottom: 25px;
+      padding-bottom: 14px;
+      margin-bottom: 20px;
       display: flex;
       justify-content: space-between;
       align-items: flex-end;
@@ -125,23 +127,23 @@
 
     .main-title {
       font-family: 'Playball', cursive;
-      font-size: 38px;
+      font-size: 36px;
       color: var(--primary);
       line-height: 1.1;
       margin-bottom: 4px;
     }
 
     .sub-title {
-      font-size: 14px;
+      font-size: 13.5px;
       color: var(--text-muted);
       font-weight: 500;
     }
 
     .meta-box {
       text-align: right;
-      font-size: 11.5px;
+      font-size: 11px;
       color: var(--text-muted);
-      line-height: 1.45;
+      line-height: 1.4;
     }
 
     .meta-box strong {
@@ -152,9 +154,9 @@
     h2 {
       font-family: 'Playball', cursive;
       color: var(--primary);
-      font-size: 26px;
-      margin-top: 22px;
-      margin-bottom: 10px;
+      font-size: 24px;
+      margin-top: 18px;
+      margin-bottom: 8px;
       display: flex;
       align-items: center;
       gap: 12px;
@@ -168,14 +170,14 @@
     }
 
     h3 {
-      font-size: 14.5px;
+      font-size: 14px;
       font-weight: 700;
       color: var(--primary);
-      margin: 14px 0 6px 0;
+      margin: 10px 0 4px 0;
     }
 
     p {
-      margin-bottom: 10px;
+      margin-bottom: 8px;
       text-align: justify;
       color: #333;
     }
@@ -185,33 +187,33 @@
       background-color: var(--bg-light);
       border-left: 4px solid var(--primary);
       border-radius: 4px;
-      padding: 12px 18px;
-      margin: 12px 0;
+      padding: 10px 16px;
+      margin: 10px 0;
     }
 
     .note-pill {
       background-color: var(--accent);
       color: #723d2b;
-      padding: 3px 8px;
+      padding: 2px 7px;
       border-radius: 4px;
-      font-size: 10px;
+      font-size: 9.5px;
       font-weight: 700;
       letter-spacing: 0.5px;
       text-transform: uppercase;
       display: inline-block;
-      margin-bottom: 6px;
+      margin-bottom: 4px;
     }
 
     /* Tablas diseñadas para A4 */
     table {
       width: 100%;
       border-collapse: collapse;
-      margin: 12px 0 16px 0;
-      font-size: 12px;
+      margin: 8px 0 12px 0;
+      font-size: 11.5px;
     }
 
     th, td {
-      padding: 8px 12px;
+      padding: 6px 10px;
       text-align: left;
       border-bottom: 1px solid var(--border-color);
     }
@@ -221,7 +223,7 @@
       color: var(--white);
       font-weight: 600;
       text-transform: uppercase;
-      font-size: 10.5px;
+      font-size: 10px;
       letter-spacing: 0.5px;
     }
 
@@ -234,30 +236,32 @@
       background-color: #1e293b;
       color: #f8fafc;
       font-family: 'JetBrains Mono', monospace;
-      font-size: 11.5px;
-      padding: 10px 14px;
+      font-size: 10.5px;
+      padding: 8px 12px;
       border-radius: 5px;
-      margin: 8px 0;
-      line-height: 1.45;
+      margin: 6px 0;
+      line-height: 1.4;
+      word-break: break-all;
     }
 
     /* Listas */
     ul {
-      margin: 6px 0 12px 20px;
+      margin: 4px 0 8px 18px;
     }
 
     li {
-      margin-bottom: 4px;
+      margin-bottom: 3px;
     }
 
     /* Pie de página de cada hoja */
     .page-footer {
+      flex-shrink: 0;
       border-top: 1px solid var(--border-color);
-      padding-top: 10px;
-      margin-top: 20px;
+      padding-top: 8px;
+      margin-top: 10px;
       display: flex;
       justify-content: space-between;
-      font-size: 11px;
+      font-size: 10.5px;
       color: var(--text-muted);
     }
   </style>
@@ -292,12 +296,12 @@
       </header>
 
       <section>
-        <h2>Introducción y Propósito</h2>
+        <h2>Introducción</h2>
         <p>
-          El presente trabajo consiste en el desarrollo de un script en Bash orientado a la administración de socios de una mutualista médica. El objetivo central es ofrecer una herramienta en consola que resuelva de manera ágil y segura las tareas de altas, bajas, modificaciones y consultas sobre archivos de texto plano.
+          Este proyecto fue realizado para la materia Sistemas Operativos y consiste en un programa en Bash para administrar los socios y médicos de una mutualista desde la terminal de Linux. Todo se resolvió utilizando archivos de texto simples (<code>.txt</code>) y los comandos vistos en clase (<code>while</code>, <code>read</code>, <code>cut</code>, <code>grep</code> y <code>mv</code>).
         </p>
         <p>
-          Se diseñó una interfaz interactiva y fácil de usar, prestando especial atención a las validaciones de datos (cédulas válidas, cuotas numéricas y médicos existentes) y asegurando la integridad del padrón mediante respaldos automáticos antes de cada cambio en los archivos.
+          El programa cuenta con un menú interactivo fácil de usar, controles para evitar datos repetidos o mal ingresados (cédulas de 7 a 9 números, cuotas numéricas, médicos existentes), registro de datos físicos del socio (sexo, edad, altura y peso) y creación de copias de seguridad automáticas en la carpeta <code>.bak/</code> antes de cada cambio.
         </p>
       </section>
 
@@ -309,17 +313,17 @@
 
         <div class="highlight-card">
           <span class="note-pill">Estructura de los Archivos</span>
-          <p style="margin-bottom: 4px;"><strong>Padrón de Pacientes (<code>db/pacientes.txt</code>):</strong></p>
-          <div class="code-block">CI:NOMBRE:APELLIDO:TELEFONO:CUOTA_SOCIAL:MATRICULA_MEDICO:FECHA_INGRESO</div>
-          <p style="margin: 8px 0 4px 0;"><strong>Lista de Médicos (<code>db/medicos.txt</code>):</strong></p>
+          <p style="margin-bottom: 2px;"><strong>Padrón de Pacientes (<code>db/pacientes.txt</code> - 11 campos):</strong></p>
+          <div class="code-block">CI:NOMBRE:APELLIDO:SEXO:ALTURA:EDAD:PESO:TELEFONO:CUOTA_SOCIAL:MATRICULA_MEDICO:FECHA_INGRESO</div>
+          <p style="margin: 6px 0 2px 0;"><strong>Lista de Médicos (<code>db/medicos.txt</code>):</strong></p>
           <div class="code-block">MATRICULA:NOMBRE:APELLIDO</div>
         </div>
 
         <table>
           <thead>
             <tr>
-              <th style="width: 24%;">Campo</th>
-              <th style="width: 26%;">Formato</th>
+              <th style="width: 26%;">Campo</th>
+              <th style="width: 24%;">Formato</th>
               <th>Regla y validación aplicada</th>
             </tr>
           </thead>
@@ -335,19 +339,19 @@
               <td>Se solicitan en dos pasos para aceptar nombres compuestos.</td>
             </tr>
             <tr>
-              <td><strong>Teléfono</strong></td>
-              <td>Texto / Numérico</td>
-              <td>Contacto directo del socio registrado.</td>
+              <td><strong>Datos Físicos</strong></td>
+              <td>Sexo, Altura, Edad, Peso</td>
+              <td>Registra Sexo (M/F), Altura (m), Edad (años) y Peso (kg).</td>
             </tr>
             <tr>
-              <td><strong>Cuota Social</strong></td>
-              <td>Entero positivo</td>
-              <td>Valor numérico en pesos (validado con expresión regular).</td>
+              <td><strong>Teléfono y Cuota</strong></td>
+              <td>Numérico / Entero</td>
+              <td>Teléfono de contacto y cuota mensual entera positiva en pesos.</td>
             </tr>
             <tr>
               <td><strong>Médico Asignado</strong></td>
               <td>Matrícula (ej: MP001)</td>
-              <td>Debe coincidir con un médico existente en la lista.</td>
+              <td>Debe coincidir con un médico existente en la lista médica.</td>
             </tr>
             <tr>
               <td><strong>Fecha de Ingreso</strong></td>
@@ -376,30 +380,30 @@
 
         <h3>1. Menú Principal y Salida Controlada</h3>
         <p>
-          La aplicación se inicia con <code>bash app.sh</code> y mantiene un bucle continuo de opciones. Siguiendo las directivas de la letra, la opción <strong>5 (Salir)</strong> es la única vía para finalizar la ejecución.
+          La aplicación se inicia con <code>bash app.sh</code> y muestra un menú en bucle continuo. Como pide la letra, la opción <strong>5 (Salir)</strong> es la única forma de cerrar el programa.
         </p>
 
-        <h3>2. Altas y Modificaciones Seguras</h3>
+        <h3>2. Altas y Modificaciones Ordenadas</h3>
         <p>
-          Durante el alta se valida que la cédula sea numérica y no se encuentre registrada. En las modificaciones se puede actualizar individualmente cualquier campo (nombre, apellido, teléfono, cuota, médico o fecha) conservando intactos los demás valores.
+          Para que el ingreso de datos sea natural, en el alta se piden primero todos los datos de la persona (nombre, apellido, sexo, altura, edad, peso, teléfono y cuota), luego se asigna el médico de cabecera y por último la fecha de ingreso. En las modificaciones se puede cambiar cualquiera de los 10 campos sin tocar los demás.
         </p>
 
         <h3>3. Baja con Confirmación y Copias de Seguridad</h3>
         <p>
-          Al solicitar una baja, el sistema muestra el registro encontrado y exige confirmación expresa (<code>s/n</code>). Toda operación de alta, baja o edición genera previamente una copia de respaldo fecheada dentro del directorio <code>.bak/</code>.
+          Al pedir una baja, el sistema muestra el registro encontrado y pregunta si está seguro (<code>s/n</code>). Cualquier cambio en el archivo genera antes un respaldo con fecha y hora dentro de <code>.bak/</code>.
         </p>
       </section>
 
       <section>
-        <h2>Módulo de Consultas</h2>
+        <h2>Módulo de Consultas (10 Opciones)</h2>
         <p>
-          El submenú de consultas implementa los reportes exigidos mediante lecturas nativas con <code>while</code> y <code>cut</code>:
+          El submenú de consultas implementa los reportes pedidos más los filtros clínicos usando comandos sencillos como <code>while</code>, <code>cut</code> y <code>grep</code>:
         </p>
 
         <table>
           <thead>
             <tr>
-              <th style="width: 12%;">Opción</th>
+              <th style="width: 10%;">Opción</th>
               <th style="width: 32%;">Consulta</th>
               <th>Descripción y funcionamiento</th>
             </tr>
@@ -408,27 +412,52 @@
             <tr>
               <td><strong>1</strong></td>
               <td>Pacientes por médico</td>
-              <td>Ingresando la matrícula muestra todos los socios que atiende dicho médico.</td>
+              <td>Lista todos los socios que atiende una matrícula determinada.</td>
             </tr>
             <tr>
               <td><strong>2</strong></td>
               <td>Cuota de un socio</td>
-              <td>Busca por CI y expone el monto mensual correspondiente.</td>
+              <td>Busca por CI e informa el nombre y cuota mensual en pesos.</td>
             </tr>
             <tr>
               <td><strong>3</strong></td>
               <td>Médico de un paciente</td>
-              <td>Relaciona al paciente con la base de médicos y muestra su médico de cabecera.</td>
+              <td>Relaciona la matrícula del paciente con la lista de médicos.</td>
             </tr>
             <tr>
               <td><strong>4</strong></td>
               <td>Ingreso mensual total</td>
-              <td>Suma acumulativa de todas las cuotas sociales activas en el padrón.</td>
+              <td>Suma acumulativa de todas las cuotas sociales activas.</td>
             </tr>
             <tr>
               <td><strong>5</strong></td>
               <td>Socios por médico (Extra)</td>
-              <td>Reporte consolidado que cuenta cuántos pacientes tiene cada profesional.</td>
+              <td>Reporte consolidado con la cantidad de socios por profesional.</td>
+            </tr>
+            <tr>
+              <td><strong>6</strong></td>
+              <td>Mostrar todos / Ficha CI</td>
+              <td>Listado general o búsqueda por CI mostrando la <strong>ficha completa</strong>.</td>
+            </tr>
+            <tr>
+              <td><strong>7</strong></td>
+              <td>Pacientes por Sexo</td>
+              <td>Filtra los pacientes registrados según su sexo (M/F).</td>
+            </tr>
+            <tr>
+              <td><strong>8</strong></td>
+              <td>Pacientes por Edad</td>
+              <td>Filtra por edad puntual (ej: 35) o rango etario (ej: 20-40).</td>
+            </tr>
+            <tr>
+              <td><strong>9</strong></td>
+              <td>Pacientes por Altura</td>
+              <td>Permite filtrar y consultar pacientes por estatura en metros.</td>
+            </tr>
+            <tr>
+              <td><strong>10</strong></td>
+              <td>Pacientes por Peso</td>
+              <td>Filtra por masa corporal puntual o rango en kilogramos.</td>
             </tr>
           </tbody>
         </table>
@@ -437,33 +466,33 @@
       <section>
         <h2>Conclusiones y Ayuda</h2>
         <p>
-          El programa cuenta además con un manual de uso no interactivo accesible mediante <code>bash app.sh --help</code>. El desarrollo se ajusta a los contenidos vistos en clase, logrando un código prolijo, modular y fácil de defender en el aula.
+          El programa cuenta además con un manual de ayuda accesible poniendo <code>bash app.sh --help</code>. Todo el desarrollo se hizo con los temas que fuimos dando en el curso, logrando un código claro, ordenado y sencillo de defender en clase.
         </p>
       </section>
 
       <section>
-        <h2>Transparencia de uso de IA</h2>
+        <h2>Transparencia en el uso de IA</h2>
         <p>
-          Durante la etapa final de documentación y verificación, se utilizó asistencia de Inteligencia Artificial como herramienta de apoyo en tres tareas puntuales:
+          Como nos indicó el profesor, aclaramos que usamos herramientas de IA para ayudarnos en:
         </p>
         <ul>
-          <li><strong>Testing:</strong> armado de las pruebas de punta a punta (E2E) y casos borde para comprobar que el script responda bien.</li>
-          <li><strong>Formateo de imprimible:</strong> diseño y maquetado de este informe en HTML para poder exportarlo prolijo a PDF en formato A4.</li>
-          <li><strong>Corrección de diagramas de flujo:</strong> pasado a limpio y ajuste visual de los diagramas de flujo del sistema.</li>
+          <li><strong>Testing:</strong> armar los scripts de pruebas automáticas (30 pruebas E2E y 6 de casos borde).</li>
+          <li><strong>Diseño del informe:</strong> darle estilo en HTML/CSS a este informe para poder pasarlo a PDF.</li>
+          <li><strong>Diagramas:</strong> pasar a formato SVG los diagramas de flujo de cada función.</li>
         </ul>
       </section>
 
     </div>
 
     <!-- Pie de página 2 con espacio para firmas -->
-    <footer class="page-footer" style="padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; align-items: flex-end; justify-content: space-between;">
+    <footer class="page-footer" style="padding-top: 10px; border-top: 1px solid var(--border-color); display: flex; align-items: flex-end; justify-content: space-between;">
       <div>
         <p style="margin: 0; font-size: 11px;"><strong>Entrega de Proyecto</strong> – Noviembre 2026</p>
         <p style="margin: 0; font-size: 10px; color: var(--text-muted);">Página 2 de 2</p>
       </div>
       <div style="text-align: right;">
         <p style="margin-bottom: 2px; font-size: 11px;">_________________________________________</p>
-        <p style="margin: 0; font-size: 10.5px; color: var(--text-muted);">Firma de los integrantes</p>
+        <p style="margin: 0; font-size: 10px; color: var(--text-muted);">Firma de los integrantes</p>
       </div>
     </footer>
   </div>
